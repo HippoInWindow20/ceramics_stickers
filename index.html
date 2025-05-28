@@ -24,6 +24,23 @@
         padding: 10px;
         border: 0;
         background: none;
+        cursor: pointer;
+      }
+
+      .functionButtons {
+        margin: 10px;
+        background: darkblue;
+        color: white;
+        border-radius: 1000000px;
+        transition: 0.1s;
+      }
+
+      .functionButtons:hover {
+        filter: brightness(1.2);
+      }
+
+      .functionButtons:active {
+        filter: brightness(0.8);
       }
     </style>
   </head>
@@ -66,15 +83,15 @@
 
 
 
-    <canvas id="canvas" width="800" height="600"></canvas>
+    <canvas id="canvas" width="800" height="600" style="width: 100%;max-width: 800px;"></canvas>
     <br>
-    <button onclick="bringForward()">往上移動</button>
-    <button onclick="sendBackward()">往下移動</button>
-    <button onclick="moveToTop()">移到最上層</button>
-    <button onclick="moveToBottom()">移到最下層</button>
-    <button onclick="deleteSelected()">刪除選取</button>
-    <button onclick="clearCanvas()">清除</button>
-    <button onclick="saveCanvas()">儲存圖片</button>
+    <button class="functionButtons" onclick="bringForward()">往上移動</button>
+    <button class="functionButtons" onclick="sendBackward()">往下移動</button>
+    <button class="functionButtons" onclick="moveToTop()">移到最上層</button>
+    <button class="functionButtons" onclick="moveToBottom()">移到最下層</button>
+    <button class="functionButtons" onclick="deleteSelected()">刪除選取</button>
+    <button class="functionButtons" onclick="clearCanvas()">清除</button>
+    <button class="functionButtons" onclick="saveCanvas()">儲存圖片</button>
     <script>
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
