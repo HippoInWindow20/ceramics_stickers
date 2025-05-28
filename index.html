@@ -110,7 +110,8 @@
       let resizing = false;
       let offsetX = 0;
       let offsetY = 0;
-      const handleSize = 20;
+      let isTouchInput = false;
+      let handleSize = isTouchInput ? 30 : 10; // Larger handle for touch input
 
       function addImage(src) {
         const img = new Image();
@@ -302,6 +303,12 @@
         draw(); // Redraw with handles after saving
       }
 
+      window.addEventListener('mousemove', () => {
+        isTouchInput = false;
+      });
+      window.addEventListener('touchstart', () => {
+        isTouchInput = true;
+      });
     </script>
 
   </body>
