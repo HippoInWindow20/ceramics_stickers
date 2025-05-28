@@ -5,9 +5,12 @@
     <meta charset="UTF-8">
     <title>Canvas Image Presets</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200..900&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: sans-serif;
+        font-family: 'Noto Serif TC', serif;
         text-align: center;
       }
 
@@ -21,11 +24,14 @@
       }
 
       button {
+        font-weight: bold;
+        font-family: 'Noto Serif TC', serif;
         margin: 5px;
         padding: 10px;
         border: 0;
         background: none;
         cursor: pointer;
+        font-size: large;
       }
 
       .imageButtons {
@@ -56,19 +62,37 @@
   </head>
 
   <body>
-    <!--List: ball, cloud, drg1, drg2, flower, sea, ware1~4-->
+    <!--List: ball, bighead, cloud1, cloud2, drg1, drg2, drg3, flower, grass, mount, phoenix, sea, ware1~4-->
     <div class="buttons">
       <button class="imageButtons" onclick="addImage('ball.png')">
         <img src="stickers/ball.png" style="width: 100%;max-width: 100px;">
       </button>
-      <button class="imageButtons" onclick="addImage('cloud.png')">
-        <img src="stickers/cloud.png" style="width: 100%;max-width: 100px;">
+      <button class="imageButtons" onclick="addImage('bighead.png')">
+        <img src="stickers/bighead.png" style="width: 100%;max-width: 100px;">
+      </button>
+      <button class="imageButtons" onclick="addImage('cloud1.png')">
+        <img src="stickers/cloud1.png" style="width: 100%;max-width: 100px;">
+      </button>
+      <button class="imageButtons" onclick="addImage('cloud2.png')">
+        <img src="stickers/cloud2.png" style="width: 100%;max-width: 100px;">
+      </button>
+      <button class="imageButtons" onclick="addImage('grass.png')">
+        <img src="stickers/grass.png" style="width: 100%;max-width: 100px;">
+      </button>
+      <button class="imageButtons" onclick="addImage('mount.png')">
+        <img src="stickers/mount.png" style="width: 100%;max-width: 100px;">
+      </button>
+      <button class="imageButtons" onclick="addImage('phoenix.png')">
+        <img src="stickers/phoenix.png" style="width: 100%;max-width: 100px;">
       </button>
       <button class="imageButtons" onclick="addImage('drg1.png')">
         <img src="stickers/drg1.png" style="width: 100%;max-width: 100px;">
       </button>
       <button class="imageButtons" onclick="addImage('drg2.png')">
         <img src="stickers/drg2.png" style="width: 100%;max-width: 100px;">
+      </button>
+      <button class="imageButtons" onclick="addImage('drg3.png')">
+        <img src="stickers/drg3.png" style="width: 100%;max-width: 100px;">
       </button>
       <button class="imageButtons" onclick="addImage('flower.png')">
         <img src="stickers/flower.png" style="width: 100%;max-width: 100px;">
@@ -95,10 +119,15 @@
 
     <canvas id="canvas" width="1000" height="1000" style="width: 100%;max-width: 800px;"></canvas>
     <br>
+    <button class="functionButtons" onclick="rotateSelected(5)">順時鐘旋轉5°</button>
+    <button class="functionButtons" onclick="flipSelected('x')">水平翻轉</button>
+    <button class="functionButtons" onclick="flipSelected('y')">垂直翻轉</button>
+    <br>
     <button class="functionButtons" onclick="bringForward()">往上移動</button>
     <button class="functionButtons" onclick="sendBackward()">往下移動</button>
     <button class="functionButtons" onclick="moveToTop()">移到最上層</button>
     <button class="functionButtons" onclick="moveToBottom()">移到最下層</button>
+    <br>
     <button class="functionButtons" onclick="deleteSelected()">刪除選取</button>
     <button class="functionButtons" onclick="clearCanvas()">清除</button>
     <button class="functionButtons" onclick="saveCanvas()">儲存圖片</button>
@@ -120,7 +149,7 @@
       function addImage(src) {
         const img = new Image();
         img.onload = () => {
-          images.push({ img, x: 50, y: 50, width: img.width * 0.5, height: img.height * 0.5 });
+          images.push({ img, x: 50, y: 50, width: img.width * 0.5, height: img.height * 0.5, flipX: false, flipY: false, rotation: 0 });
           draw();
           selectedIndex = images.length - 1;
         };
@@ -129,8 +158,13 @@
 
       function draw(hideHandle = false) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (const { img, x, y, width, height } of images) {
-          ctx.drawImage(img, x, y, width, height);
+        for (const { img, x, y, width, height, flipX, flipY, rotation } of images) {
+          ctx.save();
+          ctx.translate(x + width / 2, y + height / 2);
+          ctx.rotate(rotation);
+          ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+          ctx.drawImage(img, -width / 2, -height / 2, width, height);
+          ctx.restore();
           if (!hideHandle) {
             drawHandle(x + width - handleSize, y + height - handleSize);
           }
@@ -313,6 +347,23 @@
       window.addEventListener('touchstart', () => {
         isTouchInput = true;
       });
+
+      function rotateSelected(degrees) {
+        if (selectedIndex != null) {
+          const img = images[selectedIndex];
+          img.rotation += degrees * Math.PI / 180;
+          draw();
+        }
+      }
+
+      function flipSelected(axis) {
+        if (selectedIndex != null) {
+          const img = images[selectedIndex];
+          if (axis === 'x') img.flipX = !img.flipX;
+          if (axis === 'y') img.flipY = !img.flipY;
+          draw();
+        }
+      }
     </script>
 
   </body>
