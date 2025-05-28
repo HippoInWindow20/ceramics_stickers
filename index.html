@@ -120,17 +120,51 @@
         );
       }
 
-      canvas.addEventListener('mousedown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+      // Remove old separate mouse listeners and add these combined handlers:
 
+      canvas.addEventListener('mousedown', pointerDown);
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        pointerDown(e);
+      }, { passive: false });
+
+      canvas.addEventListener('mousemove', pointerMove);
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        pointerMove(e);
+      }, { passive: false });
+
+      canvas.addEventListener('mouseup', pointerUp);
+      canvas.addEventListener('mouseleave', pointerUp);
+      canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        pointerUp(e);
+      }, { passive: false });
+
+      function getPointerPosition(e) {
+        const rect = canvas.getBoundingClientRect();
+        if (e.touches) {
+          return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top
+          };
+        } else {
+          return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+          };
+        }
+      }
+
+      function pointerDown(e) {
+        const { x: mx, y: my } = getPointerPosition(e);
         for (let i = images.length - 1; i >= 0; i--) {
           const img = images[i];
           if (isOverHandle(img, mx, my)) {
             dragIndex = i;
-            selectedIndex = i;
             resizing = true;
+            selectedIndex = i;
+            draw();
             return;
           }
           if (
@@ -138,23 +172,23 @@
             my >= img.y && my <= img.y + img.height
           ) {
             dragIndex = i;
-            selectedIndex = i;
             offsetX = mx - img.x;
             offsetY = my - img.y;
+            selectedIndex = i;
             canvas.style.cursor = 'grabbing';
+            draw();
             return;
           }
         }
-      });
+        selectedIndex = null;
+        draw();
+      }
 
-      canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+      function pointerMove(e) {
+        const { x: mx, y: my } = getPointerPosition(e);
 
         if (dragIndex !== null) {
           const img = images[dragIndex];
-
           if (resizing) {
             img.width = Math.max(20, mx - img.x);
             img.height = Math.max(20, my - img.y);
@@ -163,28 +197,28 @@
             img.y = my - offsetY;
           }
           draw();
-        } else {
-          for (const img of images) {
-            if (isOverHandle(img, mx, my)) {
-              canvas.style.cursor = 'nwse-resize';
-              return;
-            }
-          }
-          canvas.style.cursor = 'grab';
+          return;
         }
-      });
 
-      canvas.addEventListener('mouseup', () => {
+        // Not dragging: check if hovering over a resize handle
+        let hoveringHandle = false;
+        for (const img of images) {
+          if (isOverHandle(img, mx, my)) {
+            hoveringHandle = true;
+            break;
+          }
+        }
+
+        canvas.style.cursor = hoveringHandle ? 'nwse-resize' : 'grab';
+      }
+
+
+      function pointerUp(e) {
         dragIndex = null;
         resizing = false;
         canvas.style.cursor = 'grab';
-      });
+      }
 
-      canvas.addEventListener('mouseleave', () => {
-        dragIndex = null;
-        resizing = false;
-        canvas.style.cursor = 'grab';
-      });
 
       function bringForward() {
         if (selectedIndex === null || selectedIndex >= images.length - 1) return;
