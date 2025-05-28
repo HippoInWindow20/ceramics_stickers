@@ -163,8 +163,8 @@
         const rect = canvas.getBoundingClientRect();
         if (e.touches) {
           return {
-            x: e.touches[0].clientX - rect.left,
-            y: e.touches[0].clientY - rect.top
+            x: e.touches[0].pageX - window.pageXOffset - rect.left,
+            y: e.touches[0].pageY - window.pageYOffset - rect.top
           };
         } else {
           return {
@@ -173,6 +173,7 @@
           };
         }
       }
+
 
       function pointerDown(e) {
         const { x: mx, y: my } = getPointerPosition(e);
