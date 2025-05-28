@@ -4,6 +4,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Canvas Image Presets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       body {
         font-family: sans-serif;
@@ -95,6 +96,8 @@
     <script>
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
+      const scaleX = canvas.width / canvas.clientWidth;
+      const scaleY = canvas.height / canvas.clientHeight;
 
       const images = [];
       let dragIndex = null;
@@ -160,17 +163,18 @@
 
       function getPointerPosition(e) {
         const rect = canvas.getBoundingClientRect();
+        let x, y;
         if (e.touches) {
-          return {
-            x: e.touches[0].pageX - window.pageXOffset - rect.left,
-            y: e.touches[0].pageY - window.pageYOffset - rect.top
-          };
+          x = e.touches[0].pageX - window.pageXOffset - rect.left;
+          y = e.touches[0].pageY - window.pageYOffset - rect.top;
         } else {
-          return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-          };
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
         }
+        // Scale to canvas coordinates:
+        x *= (canvas.width / canvas.clientWidth);
+        y *= (canvas.height / canvas.clientHeight);
+        return { x, y };
       }
 
 
