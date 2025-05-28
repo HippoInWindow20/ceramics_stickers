@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Canvas Image Presets</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+      }
+
+      canvas {
+        border: 1px solid #ccc;
+        cursor: grab;
+      }
+
+      .buttons {
+        margin: 10px;
+      }
+
+      button {
+        margin: 5px;
+        padding: 10px;
+        border: 0;
+        background: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!--List: ball, cloud, drg1, drg2, flower, sea, ware1~4-->
+    <div class="buttons">
+      <button onclick="addImage('ball.png')">
+        <img src="stickers/ball.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('cloud.png')">
+        <img src="stickers/cloud.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('drg1.png')">
+        <img src="stickers/drg1.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('drg2.png')">
+        <img src="stickers/drg2.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('flower.png')">
+        <img src="stickers/flower.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('sea.png')">
+        <img src="stickers/sea.png" style="width: 100px;">
+      </button>
+      <br>
+      <button onclick="addImage('ware1.png')">
+        <img src="stickers/ware1.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('ware2.png')">
+        <img src="stickers/ware2.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('ware3.png')">
+        <img src="stickers/ware3.png" style="width: 100px;">
+      </button>
+      <button onclick="addImage('ware4.png')">
+        <img src="stickers/ware4.png" style="width: 100px;">
+      </button>
+    </div>
+
+
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <br>
+    <button onclick="bringForward()">往上移動</button>
+    <button onclick="sendBackward()">往下移動</button>
+    <button onclick="moveToTop()">移到最上層</button>
+    <button onclick="moveToBottom()">移到最下層</button>
+    <button onclick="deleteSelected()">刪除選取</button>
+    <button onclick="clearCanvas()">清除</button>
+    <button onclick="saveCanvas()">儲存圖片</button>
+    <script>
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const images = [];
+      let dragIndex = null;
+      let resizing = false;
+      let offsetX = 0;
+      let offsetY = 0;
+      const handleSize = 10;
+
+      function addImage(src) {
+        const img = new Image();
+        img.onload = () => {
+          images.push({ img, x: 50, y: 50, width: img.width * 0.5, height: img.height * 0.5 });
+          draw();
+          selectedIndex = images.length - 1;
+        };
+        img.src = 'stickers/' + src;
+      }
+
+      function draw(hideHandle = false) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const { img, x, y, width, height } of images) {
+          ctx.drawImage(img, x, y, width, height);
+          if (!hideHandle) {
+            drawHandle(x + width - handleSize, y + height - handleSize);
+          }
+        }
+      }
+
+      function drawHandle(x, y) {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(x, y, handleSize, handleSize);
+      }
+
+      function isOverHandle(image, mx, my) {
+        return (
+          mx >= image.x + image.width - handleSize &&
+          mx <= image.x + image.width &&
+          my >= image.y + image.height - handleSize &&
+          my <= image.y + image.height
+        );
+      }
+
+      canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        for (let i = images.length - 1; i >= 0; i--) {
+          const img = images[i];
+          if (isOverHandle(img, mx, my)) {
+            dragIndex = i;
+            selectedIndex = i;
+            resizing = true;
+            return;
+          }
+          if (
+            mx >= img.x && mx <= img.x + img.width &&
+            my >= img.y && my <= img.y + img.height
+          ) {
+            dragIndex = i;
+            selectedIndex = i;
+            offsetX = mx - img.x;
+            offsetY = my - img.y;
+            canvas.style.cursor = 'grabbing';
+            return;
+          }
+        }
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        if (dragIndex !== null) {
+          const img = images[dragIndex];
+
+          if (resizing) {
+            img.width = Math.max(20, mx - img.x);
+            img.height = Math.max(20, my - img.y);
+          } else {
+            img.x = mx - offsetX;
+            img.y = my - offsetY;
+          }
+          draw();
+        } else {
+          for (const img of images) {
+            if (isOverHandle(img, mx, my)) {
+              canvas.style.cursor = 'nwse-resize';
+              return;
+            }
+          }
+          canvas.style.cursor = 'grab';
+        }
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        dragIndex = null;
+        resizing = false;
+        canvas.style.cursor = 'grab';
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        dragIndex = null;
+        resizing = false;
+        canvas.style.cursor = 'grab';
+      });
+
+      function bringForward() {
+        if (selectedIndex === null || selectedIndex >= images.length - 1) return;
+        [images[selectedIndex], images[selectedIndex + 1]] =
+          [images[selectedIndex + 1], images[selectedIndex]];
+        selectedIndex++;
+        draw();
+      }
+
+      function sendBackward() {
+        if (selectedIndex === null || selectedIndex <= 0) return;
+        [images[selectedIndex], images[selectedIndex - 1]] =
+          [images[selectedIndex - 1], images[selectedIndex]];
+        selectedIndex--;
+        draw();
+      }
+
+      function moveToTop() {
+        if (selectedIndex === null || selectedIndex === images.length - 1) return;
+        const img = images.splice(selectedIndex, 1)[0];
+        images.push(img);
+        selectedIndex = images.length - 1;
+        draw();
+      }
+
+      function moveToBottom() {
+        if (selectedIndex === null || selectedIndex === 0) return;
+        const img = images.splice(selectedIndex, 1)[0];
+        images.unshift(img);
+        selectedIndex = 0;
+        draw();
+      }
+      function deleteSelected() {
+        if (selectedIndex === null) return;
+        images.splice(selectedIndex, 1);
+        selectedIndex = null;
+        dragIndex = null;
+        draw();
+      }
+
+      function clearCanvas() {
+        images.length = 0;
+        selectedIndex = null;
+        dragIndex = null;
+        draw();
+      }
+      function saveCanvas() {
+        draw(true); // Draw without handles for saving
+        const link = document.createElement('a');
+        link.download = 'canvas-image.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        draw(); // Redraw with handles after saving
+      }
+
+    </script>
+
+  </body>
+
+</html>
